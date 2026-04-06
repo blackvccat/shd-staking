@@ -9,7 +9,7 @@ import { type InputHTMLAttributes } from "react";
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** 输入框标签 */
   label?: string;
-  /** 右侧后缀内容（如代币符号、MAX 按钮） */
+  /** 右侧后缀内容（如资产符号、MAX 按钮） */
   suffix?: React.ReactNode;
   /** 错误提示文本 */
   error?: string;

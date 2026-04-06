@@ -1,6 +1,6 @@
 /**
  * @file constants/tokens.ts
- * @description 代币信息常量 — 三种核心代币的基础信息定义。
+ * @description 数据资产信息常量 — 三种核心数据资产的基础信息定义。
  */
 import type { TokenInfo } from "@/types/token";
 import {
@@ -9,9 +9,9 @@ import {
   SCNY_TOKEN_ADDRESS,
 } from "./contracts";
 
-/** SHD — 商合道酒类交易平台生态币 */
+/** SHD — 商合道酒类交易平台生态数据资产 */
 export const SHD_TOKEN: TokenInfo = {
-  name: "商合道生态币",
+  name: "生态数据资产",
   symbol: "SHD",
   address: SHD_TOKEN_ADDRESS,
   decimals: 18,
@@ -21,7 +21,7 @@ export const SHD_TOKEN: TokenInfo = {
 
 /** DHC — 帝皇池酱酒 RDA */
 export const DHC_TOKEN: TokenInfo = {
-  name: "帝皇池酱酒 RDA",
+  name: "帝皇池酱酒数据资产",
   symbol: "DHC",
   address: DHC_TOKEN_ADDRESS,
   decimals: 18,
@@ -29,9 +29,9 @@ export const DHC_TOKEN: TokenInfo = {
   color: "#A855F7",
 };
 
-/** SCNY — 酒类交易平台法币 */
+/** SCNY — 酒类交易平台稳定数据资产 */
 export const SCNY_TOKEN: TokenInfo = {
-  name: "酒类交易平台法币",
+  name: "酒类交易平台稳定数据资产",
   symbol: "SCNY",
   address: SCNY_TOKEN_ADDRESS,
   decimals: 18,
@@ -39,5 +39,5 @@ export const SCNY_TOKEN: TokenInfo = {
   color: "#00FF88",
 };
 
-/** 所有代币列表 */
+/** 所有数据资产列表 */
 export const ALL_TOKENS = [SHD_TOKEN, DHC_TOKEN, SCNY_TOKEN] as const;

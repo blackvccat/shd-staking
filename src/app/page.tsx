@@ -1,18 +1,12 @@
-/**
- * @file app/page.tsx
- * @description 首页 — 3D Banner + 代币介绍 + 质押收益率展示 + CTA。
- *   作为项目的门面页面，展示核心信息并引导用户前往质押。
- */
 "use client";
 
 import { HeroBanner } from "@/components/three/HeroBanner";
 import { StarBackground } from "@/components/three/StarBackground";
-import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { ALL_TOKENS } from "@/constants/tokens";
 import { STAKING_DAILY_RATES } from "@/utils/calc";
 
-/** 质押周期展示配置 */
 const STAKING_PERIODS = [
   { days: 7, label: "7 天", rate: STAKING_DAILY_RATES[7] },
   { days: 30, label: "30 天", rate: STAKING_DAILY_RATES[30] },
@@ -26,156 +20,112 @@ export default function HomePage() {
       <StarBackground />
 
       <div className="relative z-10">
-      <HeroBanner />
+        <HeroBanner />
 
-      {/* ===== 代币介绍区域 ===== */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <h2 className="mb-2 text-center text-3xl font-bold text-text-primary">
-          核心代币
-        </h2>
-        <p className="mb-10 text-center text-text-secondary">
-          三种独立发行的代币，构建完整生态体系
-        </p>
+        {/* 核心数据资产 */}
+        <section className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
+          <div className="pointer-events-none absolute -left-20 top-0 h-72 w-72 rounded-full bg-cyber-blue/8 blur-[120px]" />
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {ALL_TOKENS.map((token) => (
-            <Card key={token.symbol} hover>
-              {/* 代币图标 */}
-              <div
-                className="mb-4 flex h-12 w-12 items-center justify-center cut-corners"
-                style={{ backgroundColor: `${token.color}20` }}
-              >
-                <span
-                  className="text-xl font-bold"
-                  style={{ color: token.color }}
-                >
-                  {token.symbol[0]}
-                </span>
-              </div>
-
-              {/* 代币名称与符号 */}
-              <div className="mb-2 flex items-center gap-2">
-                <h3 className="text-lg font-semibold text-text-primary">
-                  {token.symbol}
-                </h3>
-                <Badge variant={
-                  token.symbol === "SHD" ? "blue" :
-                  token.symbol === "DHC" ? "purple" : "green"
-                }>
-                  {token.totalSupplyLabel}
-                </Badge>
-              </div>
-
-              <p className="text-sm text-text-secondary">{token.name}</p>
-
-              {/* SHD 特殊标识 */}
-              {token.symbol === "SHD" && (
-                <p className="mt-3 text-xs text-cyber-blue">
-                  含代币税（滑点）机制 · 可质押获取收益
-                </p>
-              )}
-              {token.symbol === "SCNY" && (
-                <p className="mt-3 text-xs text-accent-green">
-                  价值恒定: 1 SCNY = 1 CNY
-                </p>
-              )}
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* ===== 质押收益率展示 ===== */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <h2 className="mb-2 text-center text-3xl font-bold text-text-primary">
-          质押收益
-        </h2>
-        <p className="mb-10 text-center text-text-secondary">
-          质押 SHD 参与子生态模式，选择不同周期获取静态收益
-        </p>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {STAKING_PERIODS.map((period) => (
-            <Card key={period.days} hover className="text-center">
-              <p className="mb-1 text-sm text-text-secondary">{period.label}</p>
-              <p className="mb-3 text-4xl font-bold text-cyber-blue">
-                {period.rate}%
-              </p>
-              <p className="text-xs text-text-muted">日化收益率</p>
-
-              {/* 预估年化 */}
-              <div className="mt-4 cut-corners bg-white/5 px-3 py-2">
-                <p className="text-xs text-text-muted">
-                  预估总收益率:{" "}
-                  <span className="text-cyber-blue font-medium">
-                    {(period.rate * period.days).toFixed(1)}%
-                  </span>
-                </p>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* CTA */}
-        <div className="mt-10 text-center">
-          <a
-            href="/staking"
-            className="cut-corners inline-flex items-center bg-cyber-blue px-8 py-3.5 text-base font-semibold text-deep-space transition-all hover:bg-cyber-blue/85"
-          >
-            立即质押
-          </a>
-        </div>
-      </section>
-
-      {/* ===== 动态收益说明 ===== */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <h2 className="mb-2 text-center text-3xl font-bold text-text-primary">
-          动态收益
-        </h2>
-        <p className="mb-10 text-center text-text-secondary">
-          通过推荐和团队建设获取额外收益
-        </p>
-
-        <div className="grid gap-6 sm:grid-cols-2">
-          {/* 直推收益 */}
-          <Card hover>
-            <h3 className="mb-3 text-lg font-semibold text-text-primary">
-              直接推荐收益
-            </h3>
-            <p className="text-4xl font-bold text-cyber-blue">10%</p>
-            <p className="mt-2 text-sm text-text-secondary">
-              直接推荐的下级质押金额的 10% 作为推荐奖励
-            </p>
-          </Card>
-
-          {/* 团队极差 */}
-          <Card hover>
-            <h3 className="mb-3 text-lg font-semibold text-text-primary">
-              团队极差收益
-            </h3>
-            <div className="space-y-2">
-              {[
-                { level: "V1", rate: "5%", req: "1万" },
-                { level: "V2", rate: "10%", req: "5万" },
-                { level: "V3", rate: "15%", req: "10万" },
-                { level: "V4", rate: "20%", req: "30万" },
-                { level: "V5", rate: "25%", req: "50万" },
-                { level: "V6", rate: "全网5%加权", req: "100万" },
-              ].map((v) => (
-                <div
-                  key={v.level}
-                  className="flex items-center justify-between cut-corners bg-white/5 px-3 py-1.5"
-                >
-                  <Badge variant="purple">{v.level}</Badge>
-                  <span className="text-sm text-cyber-blue">{v.rate}</span>
-                  <span className="text-xs text-text-muted">
-                    小区 {v.req}
-                  </span>
-                </div>
-              ))}
+          <AnimatedSection direction="up">
+            <div className="text-center">
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-cyber-blue sm:text-xs">Core Assets</p>
+              <h2 className="mb-1.5 text-xl font-bold text-text-primary sm:text-3xl">核心数据资产</h2>
+              <p className="mx-auto mb-8 max-w-md text-xs leading-relaxed text-text-muted sm:mb-10 sm:text-sm">三种独立发行的数据资产，构建完整生态体系</p>
             </div>
-          </Card>
-        </div>
-      </section>
+          </AnimatedSection>
+
+          <div className="space-y-6 sm:grid sm:grid-cols-3 sm:gap-10 sm:space-y-0">
+            {ALL_TOKENS.map((token, i) => (
+              <AnimatedSection key={token.symbol} direction="up" delay={0.08 * (i + 1)}>
+                <div className="group flex flex-col items-center text-center">
+                  <div className="relative mb-4 sm:mb-5">
+                    <div
+                      className="absolute -inset-1.5 rounded-full opacity-30 blur-lg transition-opacity duration-500 group-hover:opacity-60 sm:-inset-2 sm:blur-xl"
+                      style={{ backgroundColor: token.color }}
+                    />
+                    <div
+                      className="relative flex h-12 w-12 items-center justify-center rounded-full ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-110 sm:h-14 sm:w-14"
+                      style={{
+                        background: `linear-gradient(135deg, ${token.color}30, ${token.color}08)`,
+                      }}
+                    >
+                      <span className="text-xl font-black sm:text-2xl" style={{ color: token.color }}>
+                        {token.symbol[0]}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-text-primary sm:text-lg">{token.symbol}</h3>
+                    <Badge variant={token.symbol === "SHD" ? "blue" : token.symbol === "DHC" ? "purple" : "green"}>
+                      {token.totalSupplyLabel}
+                    </Badge>
+                  </div>
+                  <p className="mt-0.5 text-xs leading-relaxed text-text-secondary sm:mt-1.5 sm:text-sm">{token.name}</p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+        </section>
+
+        {/* 贡献收益 */}
+        <section className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
+          <div className="pointer-events-none absolute -right-20 top-10 h-60 w-60 rounded-full bg-cyber-purple/8 blur-[120px]" />
+
+          <AnimatedSection direction="up">
+            <div className="text-center">
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-accent-green sm:text-xs">Rewards</p>
+              <h2 className="mb-1.5 text-xl font-bold text-text-primary sm:text-3xl">贡献收益</h2>
+              <p className="mx-auto mb-8 max-w-md text-xs leading-relaxed text-text-muted sm:mb-10 sm:text-sm">选择不同周期获取静态收益</p>
+            </div>
+          </AnimatedSection>
+
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-8 lg:grid-cols-4">
+            {STAKING_PERIODS.map((period, i) => (
+              <AnimatedSection key={period.days} direction="up" delay={0.08 * (i + 1)}>
+                <div className="group text-center">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted sm:text-xs">{period.label}</p>
+                  <p className="mt-1.5 text-3xl font-black text-cyber-blue transition-transform duration-300 group-hover:scale-105 sm:mt-2 sm:text-4xl">
+                    {period.rate}%
+                  </p>
+                  <p className="mt-0.5 text-xs text-text-secondary sm:mt-1 sm:text-sm">日化收益率</p>
+                  <div className="mx-auto mt-2.5 h-px w-10 rounded-full bg-cyber-blue/30 sm:mt-3 sm:w-12" />
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+
+          <AnimatedSection direction="up" delay={0.2} className="mt-8 text-center sm:mt-10">
+            <a
+              href="/staking"
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-cyber-blue px-8 py-3.5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(59,130,246,0.25)] transition-all duration-300 hover:bg-cyber-blue/90 hover:shadow-[0_0_32px_rgba(59,130,246,0.4)] active:scale-[0.97] sm:w-auto"
+            >
+              立即质押
+            </a>
+          </AnimatedSection>
+        </section>
+
+        {/* 动态收益 */}
+        <section className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
+          <div className="pointer-events-none absolute -left-16 bottom-0 h-52 w-52 rounded-full bg-amber-orange/6 blur-[100px]" />
+
+          <AnimatedSection direction="up">
+            <div className="text-center">
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-orange sm:text-xs">Referral</p>
+              <h2 className="mb-1.5 text-xl font-bold text-text-primary sm:text-3xl">动态收益</h2>
+              <p className="mx-auto mb-8 max-w-md text-xs leading-relaxed text-text-muted sm:mb-10 sm:text-sm">通过推荐获取额外收益</p>
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection direction="up" delay={0.1}>
+            <div className="text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted sm:text-xs">直接推荐收益</p>
+              <p className="mt-2 text-4xl font-black text-cyber-blue sm:mt-3 sm:text-5xl">10%</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-text-secondary sm:mt-2 sm:text-sm">直推下级质押金额的 10% 作为奖励</p>
+              <div className="mx-auto mt-3 h-px w-12 rounded-full bg-amber-orange/30 sm:mt-4 sm:w-16" />
+            </div>
+          </AnimatedSection>
+        </section>
       </div>
     </div>
   );

@@ -4,38 +4,38 @@
  */
 "use client";
 
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
+import { Loader2, CheckCircle2, XCircle, X } from "lucide-react";
 
 export type TxStatus = "pending" | "success" | "error" | null;
 
 interface TxToastProps {
-  /** 交易状态 */
   status: TxStatus;
-  /** 交易哈希（用于跳转区块浏览器） */
   txHash?: string;
-  /** 自定义消息 */
   message?: string;
-  /** 关闭回调 */
   onClose: () => void;
 }
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<
+  Exclude<TxStatus, null>,
+  { icon: ReactNode; title: string; color: string }
+> = {
   pending: {
-    icon: "⏳",
+    icon: <Loader2 className="h-5 w-5 animate-spin text-cyber-blue" />,
     title: "交易处理中",
     color: "border-cyber-blue/50 bg-cyber-blue/10",
   },
   success: {
-    icon: "✅",
+    icon: <CheckCircle2 className="h-5 w-5 text-accent-green" />,
     title: "交易成功",
     color: "border-accent-green/50 bg-accent-green/10",
   },
   error: {
-    icon: "❌",
+    icon: <XCircle className="h-5 w-5 text-error" />,
     title: "交易失败",
     color: "border-error/50 bg-error/10",
   },
-} as const;
+};
 
 /**
  * TxToast — 交易状态浮动通知
@@ -66,7 +66,7 @@ export function TxToast({ status, txHash, message, onClose }: TxToastProps) {
       <div
         className={`glass-card flex items-center gap-3 border px-5 py-3 ${config.color}`}
       >
-        <span className="text-xl">{config.icon}</span>
+        <span className="shrink-0">{config.icon}</span>
         <div>
           <p className="text-sm font-medium text-text-primary">{config.title}</p>
           {message && (
@@ -85,9 +85,9 @@ export function TxToast({ status, txHash, message, onClose }: TxToastProps) {
         </div>
         <button
           onClick={() => { setVisible(false); onClose(); }}
-          className="ml-2 text-text-muted hover:text-text-primary"
+          className="ml-2 rounded-md p-1 text-text-muted transition-colors hover:bg-white/10 hover:text-text-primary"
         >
-          ✕
+          <X size={14} />
         </button>
       </div>
     </div>

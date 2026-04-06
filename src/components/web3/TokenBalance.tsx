@@ -1,6 +1,6 @@
 /**
  * @file components/web3/TokenBalance.tsx
- * @description 代币余额展示组件 — 展示指定代币的余额，带加载状态。
+ * @description 数据资产余额展示组件 — 展示指定数据资产的余额，带加载状态。
  */
 "use client";
 
@@ -9,19 +9,19 @@ import { Skeleton } from "@/components/ui/Loading";
 import { formatTokenAmount } from "@/utils/format";
 
 interface TokenBalanceProps {
-  /** 代币合约地址 */
+  /** 合约地址 */
   tokenAddress: `0x${string}`;
-  /** 代币符号（用于显示） */
+  /** 符号（用于显示） */
   symbol: string;
-  /** 代币精度 */
+  /** 精度 */
   decimals?: number;
   className?: string;
 }
 
 /**
- * TokenBalance — 代币余额展示
+ * TokenBalance — 数据资产余额展示
  * @param tokenAddress - ERC20 合约地址
- * @param symbol - 代币符号
+ * @param symbol - 资产符号
  * @param decimals - 精度，默认 18
  */
 export function TokenBalance({

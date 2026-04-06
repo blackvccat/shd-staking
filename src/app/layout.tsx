@@ -1,15 +1,11 @@
-/**
- * @file app/layout.tsx
- * @description 应用根布局。
- *   包裹 Web3Provider、Header 和 Footer，
- *   所有页面共享此布局结构。
- */
 "use client";
 
 import "@/styles/globals.css";
 import { Web3Provider } from "@/providers/Web3Provider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
+import { LocaleProvider } from "@/providers/LocaleProvider";
 import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+import { BottomNav } from "@/components/layout/BottomNav";
 
 export default function RootLayout({
   children,
@@ -18,15 +14,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" data-scroll-behavior="smooth">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+      </head>
       <body className="min-h-screen antialiased">
-        <Web3Provider>
-          {/* 顶部导航栏（固定定位，高度 64px） */}
-          <Header />
-          {/* 主内容区，上方留出 Header 的高度 */}
-          <div className="pt-16 md:pt-16">{children}</div>
-          {/* 底部 */}
-          <Footer />
-        </Web3Provider>
+        <ThemeProvider>
+          <LocaleProvider>
+            <Web3Provider>
+              <div className="flex min-h-screen flex-col pb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
+                <Header />
+                <main className="flex-1">{children}</main>
+              </div>
+              <BottomNav />
+            </Web3Provider>
+          </LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -12,12 +12,13 @@ interface BadgeProps {
   variant?: keyof typeof VARIANTS;
   children: ReactNode;
   className?: string;
+  pulse?: boolean;
 }
 
-export function Badge({ variant = "blue", children, className = "" }: BadgeProps) {
+export function Badge({ variant = "blue", children, className = "", pulse = false }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center border px-2.5 py-0.5 text-xs font-medium cut-corners ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-all duration-200 hover:scale-105 ${VARIANTS[variant]} ${pulse ? "animate-glow-pulse" : ""} ${className}`}
     >
       {children}
     </span>

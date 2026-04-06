@@ -1,16 +1,18 @@
 /**
  * @file app/swap/page.tsx
- * @description 兑换页面 — SHD/SCNY 代币兑换，显示滑点税明细。
+ * @description 兑换页面 — SHD/SCNY 数据资产兑换，显示滑点税明细。
  */
 "use client";
 
 import { useState } from "react";
+import { ArrowUpDown, ArrowDown, Wallet, Info } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { NetworkGuard } from "@/components/web3/NetworkGuard";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { useWallet } from "@/hooks/common/useWallet";
 import { useSwap } from "@/hooks/swap/useSwap";
 import { useSwapQuote } from "@/hooks/swap/useSwapQuote";
@@ -28,23 +30,25 @@ export default function SwapPage() {
 
   const [direction, setDirection] = useState<Direction>("buy");
   const [amount, setAmount] = useState("");
+  const [isFlipping, setIsFlipping] = useState(false);
 
   const numericAmount = parseFloat(amount) || 0;
   const quote = useSwapQuote(numericAmount, direction);
 
-  // 买入: SCNY -> SHD，卖出: SHD -> SCNY
   const fromSymbol = direction === "buy" ? "SCNY" : "SHD";
   const toSymbol = direction === "buy" ? "SHD" : "SCNY";
   const fromBalance = direction === "buy" ? scnyBalance : shdBalance;
 
-  /** 切换买卖方向 */
   const toggleDirection = () => {
-    setDirection((d) => (d === "buy" ? "sell" : "buy"));
-    setAmount("");
-    reset();
+    setIsFlipping(true);
+    setTimeout(() => {
+      setDirection((d) => (d === "buy" ? "sell" : "buy"));
+      setAmount("");
+      reset();
+    }, 150);
+    setTimeout(() => setIsFlipping(false), 400);
   };
 
-  /** 执行兑换 */
   const handleSwap = () => {
     if (numericAmount <= 0) return;
     const fromAddr = direction === "buy" ? SCNY_TOKEN_ADDRESS : SHD_TOKEN_ADDRESS;
@@ -54,146 +58,153 @@ export default function SwapPage() {
 
   return (
     <NetworkGuard>
-      <PageContainer className="pt-8">
-        <h1 className="mb-2 text-3xl font-bold text-text-primary">代币兑换</h1>
-        <p className="mb-8 text-text-secondary">SHD / SCNY 交易对兑换</p>
+      <PageContainer className="pt-6 sm:pt-8">
+        <div className="animate-slide-up">
+          <h1 className="mb-1.5 text-xl font-bold text-text-primary sm:mb-2 sm:text-3xl">数据资产兑换</h1>
+          <p className="mb-6 text-xs text-text-secondary sm:mb-8 sm:text-base">SHD / SCNY 交易对兑换</p>
+        </div>
 
-        <div className="mx-auto max-w-md space-y-6">
-          {/* 兑换卡片 */}
-          <Card>
-            {/* 方向选择 */}
-            <div className="mb-4 flex items-center justify-between">
-              <Badge variant={direction === "buy" ? "green" : "orange"}>
-                {direction === "buy" ? "买入 SHD" : "卖出 SHD"}
-              </Badge>
-              <button
-                onClick={toggleDirection}
-                className="cut-corners border border-card-border p-2 text-text-secondary transition-colors hover:bg-white/5 hover:text-text-primary"
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M4 6l4-4 4 4M4 10l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
-
-            {/* 输入金额 */}
-            <Input
-              label={`支付 (${fromSymbol})`}
-              type="number"
-              placeholder="0.0"
-              value={amount}
-              onChange={(e) => { setAmount(e.target.value); reset(); }}
-              suffix={
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      if (fromBalance) setAmount(formatTokenAmount(fromBalance, 18, 18));
-                    }}
-                    className="text-xs text-cyber-blue"
-                  >
-                    MAX
-                  </button>
-                  <span className="text-sm font-medium">{fromSymbol}</span>
-                </div>
-              }
-            />
-            {fromBalance !== undefined && (
-              <p className="mt-1 text-xs text-text-muted">
-                可用: {formatTokenAmount(fromBalance)} {fromSymbol}
-              </p>
-            )}
-
-            {/* 箭头分隔 */}
-            <div className="my-4 flex justify-center">
-              <div className="cut-corners border border-card-border bg-white/5 p-2">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 3v10M5 10l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyber-blue" />
-                </svg>
-              </div>
-            </div>
-
-            {/* 输出预估 */}
-            <div className="cut-corners border border-card-border bg-white/5 px-4 py-3">
-              <p className="mb-1 text-xs text-text-muted">获得 ({toSymbol})</p>
-              <p className="text-2xl font-bold text-text-primary">
-                {quote.outputAmount > 0
-                  ? quote.outputAmount.toFixed(4)
-                  : "0.0"}
-              </p>
-            </div>
-
-            {/* 操作按钮 */}
-            <div className="mt-6">
-              {!isConnected ? (
-                <Button onClick={connectWallet} className="w-full">
-                  连接钱包
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleSwap}
-                  loading={isSending}
-                  disabled={numericAmount <= 0}
-                  className="w-full"
-                >
-                  {isConfirmed ? "兑换成功!" : "确认兑换"}
-                </Button>
-              )}
-            </div>
-          </Card>
-
-          {/* 滑点明细 */}
-          {numericAmount > 0 && (
+        <div className="mx-auto max-w-md space-y-4 sm:space-y-6">
+          <div className="animate-scale-in opacity-0" style={{ animationDelay: "0.1s" }}>
             <Card>
-              <h3 className="mb-3 text-sm font-medium text-text-secondary">
-                交易税 (滑点 {quote.slippageRate}%)
-              </h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">滑点扣税总额</span>
-                  <span className="text-amber-orange">
-                    -{quote.slippageTotal.toFixed(4)} {fromSymbol}
-                  </span>
+              <div className="mb-3 flex items-center justify-between sm:mb-4">
+                <div className="transition-all duration-300" style={{ transform: isFlipping ? "scale(0.9)" : "scale(1)", opacity: isFlipping ? 0.5 : 1 }}>
+                  <Badge variant={direction === "buy" ? "green" : "orange"}>
+                    {direction === "buy" ? "买入 SHD" : "卖出 SHD"}
+                  </Badge>
                 </div>
+                <button
+                  onClick={toggleDirection}
+                  className="rounded-lg border border-card-border p-1.5 text-text-secondary transition-all duration-300 hover:bg-white/5 hover:text-text-primary hover:border-cyber-blue/30 hover:shadow-[0_0_12px_rgba(59,130,246,0.2)] active:scale-90 sm:p-2"
+                  style={{ transform: isFlipping ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
+                >
+                  <ArrowUpDown size={14} strokeWidth={1.5} className="sm:h-4 sm:w-4" />
+                </button>
+              </div>
 
-                {quote.details && (
-                  <>
-                    <hr className="border-card-border" />
-                    <div className="flex justify-between text-xs">
-                      <span className="text-text-muted">LP 分红 (1.5%)</span>
-                      <span className="text-text-secondary">
-                        {quote.details.lpDividend.toFixed(4)}
-                      </span>
+              <div style={{ transition: "opacity 0.3s, transform 0.3s", opacity: isFlipping ? 0.3 : 1, transform: isFlipping ? "translateY(-4px)" : "translateY(0)" }}>
+                <Input
+                  label={`支付 (${fromSymbol})`}
+                  type="number"
+                  placeholder="0.0"
+                  value={amount}
+                  onChange={(e) => { setAmount(e.target.value); reset(); }}
+                  suffix={
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (fromBalance) setAmount(formatTokenAmount(fromBalance, 18, 18));
+                        }}
+                        className="text-xs text-cyber-blue transition-all duration-200 hover:scale-110 active:scale-95"
+                      >
+                        MAX
+                      </button>
+                      <span className="text-xs font-medium sm:text-sm">{fromSymbol}</span>
                     </div>
+                  }
+                />
+                {fromBalance !== undefined && (
+                  <p className="mt-1 text-[10px] text-text-muted sm:text-xs">
+                    可用: {formatTokenAmount(fromBalance)} {fromSymbol}
+                  </p>
+                )}
+              </div>
 
-                    {direction === "buy" && "burn" in quote.details && (
-                      <div className="flex justify-between text-xs">
-                        <span className="text-text-muted">直接销毁 (2.0%)</span>
-                        <span className="text-text-secondary">
-                          {(quote.details as { burn: number }).burn.toFixed(4)}
-                        </span>
-                      </div>
-                    )}
+              <div className="my-3 flex justify-center sm:my-4">
+                <div
+                  className="rounded-lg border border-card-border bg-white/5 p-1.5 transition-all duration-300 sm:p-2"
+                  style={{ transform: isFlipping ? "rotate(180deg) scale(1.1)" : "rotate(0) scale(1)" }}
+                >
+                  <ArrowDown size={14} strokeWidth={1.5} className="text-cyber-blue sm:h-4 sm:w-4" />
+                </div>
+              </div>
 
-                    {direction === "sell" && "marketing" in quote.details && (
-                      <>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-text-muted">营销补贴 (1.5%)</span>
-                          <span className="text-text-secondary">
-                            {(quote.details as { marketing: number }).marketing.toFixed(4)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-text-muted">回流底池 (0.5%)</span>
-                          <span className="text-text-secondary">
-                            {(quote.details as { poolReturn: number }).poolReturn.toFixed(4)}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </>
+              <div
+                className="cut-corners border border-card-border bg-white/5 px-3 py-2.5 transition-all duration-300 sm:px-4 sm:py-3"
+                style={{ opacity: isFlipping ? 0.3 : 1, transform: isFlipping ? "translateY(4px)" : "translateY(0)" }}
+              >
+                <p className="mb-0.5 text-[10px] text-text-muted sm:mb-1 sm:text-xs">获得 ({toSymbol})</p>
+                <p className={`text-xl font-bold transition-all duration-500 sm:text-2xl ${quote.outputAmount > 0 ? "text-cyber-blue" : "text-text-primary"}`}>
+                  {quote.outputAmount > 0
+                    ? quote.outputAmount.toFixed(4)
+                    : "0.0"}
+                </p>
+              </div>
+
+              <div className="mt-4 sm:mt-6">
+                {!isConnected ? (
+                  <Button onClick={connectWallet} className="w-full gap-2">
+                    <Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />连接钱包
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSwap}
+                    loading={isSending}
+                    disabled={numericAmount <= 0}
+                    className="w-full"
+                  >
+                    {isConfirmed ? "✓ 兑换成功!" : "确认兑换"}
+                  </Button>
                 )}
               </div>
             </Card>
+          </div>
+
+          {numericAmount > 0 && (
+            <AnimatedSection direction="up" delay={0}>
+              <Card>
+                <h3 className="mb-2.5 flex items-center gap-2 text-xs font-medium text-text-secondary sm:mb-3 sm:text-sm">
+                  <Info className="h-3.5 w-3.5 text-amber-orange sm:h-4 sm:w-4" />
+                  交易税 (滑点 {quote.slippageRate}%)
+                </h3>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm">
+                    <span className="text-text-muted">滑点扣税总额</span>
+                    <span className="text-amber-orange">
+                      -{quote.slippageTotal.toFixed(4)} {fromSymbol}
+                    </span>
+                  </div>
+
+                  {quote.details && (
+                    <>
+                      <hr className="border-card-border" />
+                      <div className="flex justify-between text-[10px] sm:text-xs">
+                        <span className="text-text-muted">LP 分红 (1.5%)</span>
+                        <span className="text-text-secondary">
+                          {quote.details.lpDividend.toFixed(4)}
+                        </span>
+                      </div>
+
+                      {direction === "buy" && "burn" in quote.details && (
+                        <div className="flex justify-between text-[10px] sm:text-xs">
+                          <span className="text-text-muted">直接销毁 (2.0%)</span>
+                          <span className="text-text-secondary">
+                            {(quote.details as { burn: number }).burn.toFixed(4)}
+                          </span>
+                        </div>
+                      )}
+
+                      {direction === "sell" && "marketing" in quote.details && (
+                        <>
+                          <div className="flex justify-between text-[10px] sm:text-xs">
+                            <span className="text-text-muted">营销补贴 (1.5%)</span>
+                            <span className="text-text-secondary">
+                              {(quote.details as { marketing: number }).marketing.toFixed(4)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-[10px] sm:text-xs">
+                            <span className="text-text-muted">回流底池 (0.5%)</span>
+                            <span className="text-text-secondary">
+                              {(quote.details as { poolReturn: number }).poolReturn.toFixed(4)}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </Card>
+            </AnimatedSection>
           )}
         </div>
       </PageContainer>

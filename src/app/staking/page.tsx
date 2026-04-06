@@ -5,8 +5,10 @@
  */
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { parseUnits } from "viem";
+import { Suspense, useState, useMemo, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { Wallet, Copy, Check, Lock, Calculator } from "lucide-react";
+import { isAddress, parseUnits } from "viem";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { NetworkGuard } from "@/components/web3/NetworkGuard";
 import { Card } from "@/components/ui/Card";
@@ -20,6 +22,7 @@ import { useStake } from "@/hooks/staking/useStake";
 import { useTokenBalance } from "@/hooks/token/useTokenBalance";
 import { useTokenApproval } from "@/hooks/token/useTokenApproval";
 import { SHD_TOKEN_ADDRESS, STAKING_CONTRACT_ADDRESS } from "@/constants/contracts";
+import { STORAGE_PREFERRED_REFERRER } from "@/constants/storageKeys";
 import { calcStakingReward, STAKING_DAILY_RATES } from "@/utils/calc";
 import { formatTokenAmount } from "@/utils/format";
 import type { StakingPeriod } from "@/types/staking";
@@ -32,7 +35,8 @@ const PERIOD_TABS = [
   { key: "360", label: "360 天" },
 ];
 
-export default function StakingPage() {
+function StakingPageInner() {
+  const searchParams = useSearchParams();
   const { isConnected, connectWallet, address } = useWallet();
   const { pools } = useStakingPools();
   const { stake, isSending, isConfirming, isConfirmed } = useStake();
@@ -45,37 +49,51 @@ export default function StakingPage() {
     isConfirmed: isApproveConfirmed,
   } = useTokenApproval(SHD_TOKEN_ADDRESS, STAKING_CONTRACT_ADDRESS);
 
-  // 选中的质押周期
   const [selectedPeriod, setSelectedPeriod] = useState<string>("30");
-  // 输入的质押数量
   const [amount, setAmount] = useState("");
-  // 推荐人地址
   const [referrer, setReferrer] = useState("");
+
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref && isAddress(ref)) {
+      setReferrer(ref);
+      try {
+        localStorage.setItem(STORAGE_PREFERRED_REFERRER, ref);
+      } catch {
+        /* */
+      }
+      return;
+    }
+    try {
+      const saved = localStorage.getItem(STORAGE_PREFERRED_REFERRER);
+      if (saved && isAddress(saved)) {
+        setReferrer((prev) => prev || saved);
+      }
+    } catch {
+      /* */
+    }
+  }, [searchParams]);
 
   const periodDays = Number(selectedPeriod) as StakingPeriod;
   const dailyRate = STAKING_DAILY_RATES[periodDays] ?? 0;
   const numericAmount = parseFloat(amount) || 0;
 
-  // 预估收益计算
   const estimatedReward = useMemo(
     () => calcStakingReward(numericAmount, periodDays),
     [numericAmount, periodDays]
   );
 
-  // 填入最大余额
   const handleMax = useCallback(() => {
     if (shdBalance) {
       setAmount(formatTokenAmount(shdBalance, 18, 18));
     }
   }, [shdBalance]);
 
-  // 执行授权
   const handleApprove = () => {
     if (!amount) return;
     approve(amount, 18);
   };
 
-  // 执行质押
   const handleStake = () => {
     if (!amount || numericAmount <= 0) return;
     const parsedAmount = parseUnits(amount, 18);
@@ -86,79 +104,81 @@ export default function StakingPage() {
     });
   };
 
-  // 判断当前步骤
   const parsedAmount = numericAmount > 0 ? parseUnits(amount, 18) : BigInt(0);
   const showApproveStep = numericAmount > 0 && needsApproval(parsedAmount) && !isApproveConfirmed;
 
   return (
     <NetworkGuard>
-      <PageContainer className="pt-8">
-        <h1 className="mb-2 text-3xl font-bold text-text-primary">质押 SHD</h1>
-        <p className="mb-8 text-text-secondary">
-          选择质押周期，质押 SHD 获取静态收益
-        </p>
+      <PageContainer className="pt-6 sm:pt-8">
+        <div className="animate-slide-up" style={{ animationDelay: "0s" }}>
+          <h1 className="mb-1 text-lg font-semibold text-text-primary sm:text-xl">质押 SHD</h1>
+          <p className="mb-5 text-xs text-text-muted sm:mb-6 sm:text-sm">选择质押周期，质押 SHD 获取静态收益</p>
+        </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="space-y-5 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0">
           {/* 左侧 — 质押表单 */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* 周期选择 — 赛博切角卡片 */}
-            <Card>
-              <h3 className="mb-4 text-sm font-medium text-text-secondary">
-                选择质押周期
-              </h3>
-              <Tabs
-                items={PERIOD_TABS}
-                activeKey={selectedPeriod}
-                onChange={setSelectedPeriod}
-                className="w-full"
-              />
-              <div className="mt-4 flex items-center gap-4">
-                <Badge variant="blue">日化 {dailyRate}%</Badge>
-                <Badge variant="green">
-                  总收益率 {(dailyRate * periodDays).toFixed(1)}%
-                </Badge>
-              </div>
-            </Card>
+          <div className="space-y-4 lg:col-span-2 sm:space-y-6">
+            {/* 周期选择 */}
+            <div className="animate-slide-up opacity-0" style={{ animationDelay: "0.08s" }}>
+              <Card>
+                <h3 className="mb-3 text-xs font-medium text-text-secondary sm:mb-4 sm:text-sm">
+                  选择质押周期
+                </h3>
+                <Tabs
+                  items={PERIOD_TABS}
+                  activeKey={selectedPeriod}
+                  onChange={setSelectedPeriod}
+                  className="w-full"
+                />
+                <div className="mt-3 sm:mt-4">
+                  <Badge variant="blue" pulse>日化 {dailyRate}%</Badge>
+                </div>
+              </Card>
+            </div>
 
             {/* 数量输入 */}
-            <Card>
-              <Input
-                label="质押数量"
-                type="number"
-                placeholder="请输入质押 SHD 数量"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                suffix={
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleMax}
-                      className="text-xs text-cyber-blue hover:text-cyber-blue/80"
-                    >
-                      MAX
-                    </button>
-                    <span className="text-sm font-medium">SHD</span>
-                  </div>
-                }
-              />
-              {shdBalance !== undefined && (
-                <p className="mt-2 text-xs text-text-muted">
-                  可用余额: {formatTokenAmount(shdBalance)} SHD
-                </p>
-              )}
-            </Card>
+            <div className="animate-slide-up opacity-0" style={{ animationDelay: "0.16s" }}>
+              <Card>
+                <Input
+                  label="质押数量"
+                  type="number"
+                  placeholder="请输入质押 SHD 数量"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  suffix={
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleMax}
+                        className="text-xs text-cyber-blue hover:text-cyber-blue/80 transition-all duration-200 hover:scale-110 active:scale-95"
+                      >
+                        MAX
+                      </button>
+                      <span className="text-xs font-medium sm:text-sm">SHD</span>
+                    </div>
+                  }
+                />
+                {shdBalance !== undefined && (
+                  <p className="mt-2 text-[10px] text-text-muted sm:text-xs">
+                    可用余额: {formatTokenAmount(shdBalance)} SHD
+                  </p>
+                )}
+              </Card>
+            </div>
 
             {/* 推荐人 */}
-            <Card>
-              <Input
-                label="推荐人地址（可选）"
-                placeholder="0x..."
-                value={referrer}
-                onChange={(e) => setReferrer(e.target.value)}
-              />
-            </Card>
+            <div className="animate-slide-up opacity-0" style={{ animationDelay: "0.24s" }}>
+              <Card>
+                <Input
+                  label="推荐人地址（可选）"
+                  placeholder="0x..."
+                  value={referrer}
+                  onChange={(e) => setReferrer(e.target.value)}
+                />
+              </Card>
+            </div>
 
             {/* 操作按钮 */}
-            <div className="flex gap-4">
+            <div className="flex gap-3 animate-slide-up opacity-0 sm:gap-4" style={{ animationDelay: "0.32s" }}>
               {!isConnected ? (
                 <Button onClick={connectWallet} className="flex-1">
                   连接钱包
@@ -181,7 +201,7 @@ export default function StakingPage() {
                   {isConfirming
                     ? "交易确认中..."
                     : isConfirmed
-                    ? "质押成功!"
+                    ? "✓ 质押成功!"
                     : "确认质押"}
                 </Button>
               )}
@@ -189,78 +209,96 @@ export default function StakingPage() {
           </div>
 
           {/* 右侧 — 收益预估面板 */}
-          <div className="space-y-6">
-            <Card>
-              <h3 className="mb-4 text-sm font-medium text-text-secondary">
-                收益预估
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-text-muted">质押数量</span>
-                  <span className="text-sm font-medium text-text-primary">
-                    {numericAmount.toLocaleString()} SHD
-                  </span>
+          <div className="space-y-4 sm:space-y-6">
+            <div className="animate-slide-up opacity-0 lg:animate-slide-left" style={{ animationDelay: "0.15s" }}>
+              <Card glow={numericAmount > 0}>
+                <h3 className="mb-3 text-xs font-medium text-text-secondary sm:mb-4 sm:text-sm">
+                  收益预估
+                </h3>
+                <div className="space-y-2.5 sm:space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-xs text-text-muted sm:text-sm">质押数量</span>
+                    <span className="text-xs font-medium text-text-primary transition-all duration-300 sm:text-sm">
+                      {numericAmount.toLocaleString()} SHD
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-text-muted sm:text-sm">质押周期</span>
+                    <span className="text-xs font-medium text-text-primary sm:text-sm">
+                      {periodDays} 天
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-text-muted sm:text-sm">日化收益率</span>
+                    <span className="text-xs font-medium text-cyber-blue sm:text-sm">
+                      {dailyRate}%
+                    </span>
+                  </div>
+                  <hr className="border-card-border" />
+                  <div className="flex justify-between">
+                    <span className="text-xs text-text-muted sm:text-sm">每日收益</span>
+                    <span className="text-xs font-medium text-accent-green sm:text-sm">
+                      {(numericAmount * dailyRate / 100).toFixed(4)} SHD
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-text-secondary sm:text-sm">
+                      预估总收益
+                    </span>
+                    <span className={`text-base font-bold text-cyber-blue transition-all duration-500 sm:text-lg ${numericAmount > 0 ? "scale-110" : ""}`}>
+                      {estimatedReward.toFixed(4)} SHD
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-text-muted">质押周期</span>
-                  <span className="text-sm font-medium text-text-primary">
-                    {periodDays} 天
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-text-muted">日化收益率</span>
-                  <span className="text-sm font-medium text-cyber-blue">
-                    {dailyRate}%
-                  </span>
-                </div>
-                <hr className="border-card-border" />
-                <div className="flex justify-between">
-                  <span className="text-sm text-text-muted">每日收益</span>
-                  <span className="text-sm font-medium text-accent-green">
-                    {(numericAmount * dailyRate / 100).toFixed(4)} SHD
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-text-secondary">
-                    预估总收益
-                  </span>
-                  <span className="text-lg font-bold text-cyber-blue">
-                    {estimatedReward.toFixed(4)} SHD
-                  </span>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </div>
 
             {/* 推荐链接 */}
             {isConnected && address && (
-              <Card>
-                <h3 className="mb-3 text-sm font-medium text-text-secondary">
-                  我的推荐链接
-                </h3>
-                <div className="cut-corners bg-white/5 p-3">
-                  <p className="break-all text-xs font-mono text-text-muted">
-                    {typeof window !== "undefined"
-                      ? `${window.location.origin}/staking?ref=${address}`
-                      : ""}
-                  </p>
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="mt-3 w-full"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/staking?ref=${address}`
-                    );
-                  }}
-                >
-                  复制推荐链接
-                </Button>
-              </Card>
+              <div className="animate-slide-up opacity-0 lg:animate-slide-left" style={{ animationDelay: "0.25s" }}>
+                <Card>
+                  <h3 className="mb-2.5 text-xs font-medium text-text-secondary sm:mb-3 sm:text-sm">
+                    我的推荐链接
+                  </h3>
+                  <div className="cut-corners bg-white/5 p-2.5 transition-colors duration-200 hover:bg-white/[0.08] sm:p-3">
+                    <p className="break-all text-[10px] font-mono text-text-muted sm:text-xs">
+                      {typeof window !== "undefined"
+                        ? `${window.location.origin}/staking?ref=${address}`
+                        : ""}
+                    </p>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="mt-2.5 w-full sm:mt-3"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `${window.location.origin}/staking?ref=${address}`
+                      );
+                    }}
+                  >
+                    复制推荐链接
+                  </Button>
+                </Card>
+              </div>
             )}
           </div>
         </div>
       </PageContainer>
     </NetworkGuard>
+  );
+}
+
+export default function StakingPage() {
+  return (
+    <Suspense
+      fallback={
+        <PageContainer className="pt-6 sm:pt-8">
+          <p className="text-text-muted">加载中…</p>
+        </PageContainer>
+      }
+    >
+      <StakingPageInner />
+    </Suspense>
   );
 }
