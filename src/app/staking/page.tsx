@@ -109,7 +109,7 @@ function StakingPageInner() {
 
   return (
     <NetworkGuard>
-      <PageContainer className="pt-6 sm:pt-8">
+      <PageContainer>
         <div className="animate-slide-up" style={{ animationDelay: "0s" }}>
           <h1 className="mb-1 text-lg font-semibold text-text-primary sm:text-xl">质押 SHD</h1>
           <p className="mb-5 text-xs text-text-muted sm:mb-6 sm:text-sm">选择质押周期，质押 SHD 获取静态收益</p>
@@ -293,7 +293,7 @@ export default function StakingPage() {
   return (
     <Suspense
       fallback={
-        <PageContainer className="pt-6 sm:pt-8">
+        <PageContainer>
           <p className="text-text-muted">加载中…</p>
         </PageContainer>
       }

@@ -58,7 +58,7 @@ export default function TeamPage() {
 
   return (
     <NetworkGuard>
-      <PageContainer className="pt-6 sm:pt-8">
+      <PageContainer>
         <div className="animate-slide-up">
           <h1 className="mb-1 text-lg font-semibold text-text-primary sm:text-xl">我的团队</h1>
           <p className="mb-5 text-xs text-text-muted sm:mb-6 sm:text-sm">邀请好友、查看团队业绩与等级</p>

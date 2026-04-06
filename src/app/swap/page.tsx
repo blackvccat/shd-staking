@@ -58,10 +58,10 @@ export default function SwapPage() {
 
   return (
     <NetworkGuard>
-      <PageContainer className="pt-6 sm:pt-8">
+      <PageContainer>
         <div className="animate-slide-up">
-          <h1 className="mb-1.5 text-xl font-bold text-text-primary sm:mb-2 sm:text-3xl">数据资产兑换</h1>
-          <p className="mb-6 text-xs text-text-secondary sm:mb-8 sm:text-base">SHD / SCNY 交易对兑换</p>
+          <h1 className="mb-1 text-lg font-semibold text-text-primary sm:text-xl">数据资产兑换</h1>
+          <p className="mb-5 text-xs text-text-muted sm:mb-6 sm:text-sm">SHD / SCNY 交易对兑换</p>
         </div>
 
         <div className="mx-auto max-w-md space-y-4 sm:space-y-6">

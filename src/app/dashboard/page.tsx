@@ -108,7 +108,7 @@ export default function DashboardPage() {
   const assetLoading = showAssets && (shdLoading || dhcLoading || scnyLoading);
 
   return (
-    <PageContainer className="pt-6 sm:pt-8">
+    <PageContainer>
       <div className="animate-slide-up">
         <h1 className="mb-1 text-lg font-semibold text-text-primary sm:text-xl">个人中心</h1>
         <p className="mb-5 text-xs text-text-muted sm:mb-6 sm:text-sm">管理钱包、查看资产与团队业绩</p>

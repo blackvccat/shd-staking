@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Megaphone } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 
@@ -109,19 +109,10 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
 
 export default function NewsPage() {
   return (
-    <PageContainer className="pt-6 sm:pt-8">
+    <PageContainer>
       <div className="animate-slide-up">
-        <div className="mb-5 flex items-center gap-2.5 sm:mb-6 sm:gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyber-blue/10 sm:h-8 sm:w-8">
-            <Megaphone className="h-3.5 w-3.5 text-cyber-blue sm:h-4 sm:w-4" />
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-text-primary sm:text-xl">
-              系统公告
-            </h1>
-            <p className="text-[10px] text-text-muted sm:text-sm">SYSTEM NEWS</p>
-          </div>
-        </div>
+        <h1 className="mb-1 text-lg font-semibold text-text-primary sm:text-xl">系统公告</h1>
+        <p className="mb-5 text-xs text-text-muted sm:mb-6 sm:text-sm">平台最新动态与规则说明</p>
       </div>
 
       <div className="space-y-2.5 sm:space-y-3">
