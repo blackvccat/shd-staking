@@ -1,65 +1,178 @@
-import Image from "next/image";
+/**
+ * @file app/page.tsx
+ * @description 首页 — 3D Banner + 代币介绍 + 质押收益率展示 + CTA。
+ *   作为项目的门面页面，展示核心信息并引导用户前往质押。
+ */
+"use client";
 
-export default function Home() {
+import { HeroBanner } from "@/components/three/HeroBanner";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { ALL_TOKENS } from "@/constants/tokens";
+import { STAKING_DAILY_RATES } from "@/utils/calc";
+
+/** 质押周期展示配置 */
+const STAKING_PERIODS = [
+  { days: 7, label: "7 天", rate: STAKING_DAILY_RATES[7] },
+  { days: 30, label: "30 天", rate: STAKING_DAILY_RATES[30] },
+  { days: 180, label: "180 天", rate: STAKING_DAILY_RATES[180] },
+  { days: 360, label: "360 天", rate: STAKING_DAILY_RATES[360] },
+];
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div>
+      {/* ===== 3D 科幻 Banner ===== */}
+      <HeroBanner />
+
+      {/* ===== 代币介绍区域 ===== */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+        <h2 className="mb-2 text-center text-3xl font-bold text-text-primary">
+          核心代币
+        </h2>
+        <p className="mb-10 text-center text-text-secondary">
+          三种独立发行的代币，构建完整生态体系
+        </p>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {ALL_TOKENS.map((token) => (
+            <Card key={token.symbol} hover>
+              {/* 代币图标 */}
+              <div
+                className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl"
+                style={{ backgroundColor: `${token.color}20` }}
+              >
+                <span
+                  className="text-xl font-bold"
+                  style={{ color: token.color }}
+                >
+                  {token.symbol[0]}
+                </span>
+              </div>
+
+              {/* 代币名称与符号 */}
+              <div className="mb-2 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-text-primary">
+                  {token.symbol}
+                </h3>
+                <Badge variant={
+                  token.symbol === "SHD" ? "blue" :
+                  token.symbol === "DHC" ? "purple" : "green"
+                }>
+                  {token.totalSupplyLabel}
+                </Badge>
+              </div>
+
+              <p className="text-sm text-text-secondary">{token.name}</p>
+
+              {/* SHD 特殊标识 */}
+              {token.symbol === "SHD" && (
+                <p className="mt-3 text-xs text-cyber-blue">
+                  含代币税（滑点）机制 · 可质押获取收益
+                </p>
+              )}
+              {token.symbol === "SCNY" && (
+                <p className="mt-3 text-xs text-neon-green">
+                  价值恒定: 1 SCNY = 1 CNY
+                </p>
+              )}
+            </Card>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+      </section>
+
+      {/* ===== 质押收益率展示 ===== */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+        <h2 className="mb-2 text-center text-3xl font-bold text-text-primary">
+          质押收益
+        </h2>
+        <p className="mb-10 text-center text-text-secondary">
+          质押 SHD 参与子生态模式，选择不同周期获取静态收益
+        </p>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {STAKING_PERIODS.map((period) => (
+            <Card key={period.days} hover className="text-center">
+              <p className="mb-1 text-sm text-text-secondary">{period.label}</p>
+              <p className="mb-3 text-4xl font-bold gradient-text">
+                {period.rate}%
+              </p>
+              <p className="text-xs text-text-muted">日化收益率</p>
+
+              {/* 预估年化 */}
+              <div className="mt-4 rounded-lg bg-white/5 px-3 py-2">
+                <p className="text-xs text-text-muted">
+                  预估总收益率:{" "}
+                  <span className="text-cyber-blue font-medium">
+                    {(period.rate * period.days).toFixed(1)}%
+                  </span>
+                </p>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="mt-10 text-center">
           <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/staking"
+            className="inline-flex items-center rounded-xl bg-gradient-to-r from-cyber-blue to-cyber-purple px-8 py-3.5 text-base font-semibold text-white transition-all hover:shadow-[0_0_30px_rgba(0,212,255,0.4)]"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
+            立即质押
           </a>
         </div>
-      </main>
+      </section>
+
+      {/* ===== 动态收益说明 ===== */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+        <h2 className="mb-2 text-center text-3xl font-bold text-text-primary">
+          动态收益
+        </h2>
+        <p className="mb-10 text-center text-text-secondary">
+          通过推荐和团队建设获取额外收益
+        </p>
+
+        <div className="grid gap-6 sm:grid-cols-2">
+          {/* 直推收益 */}
+          <Card hover>
+            <h3 className="mb-3 text-lg font-semibold text-text-primary">
+              直接推荐收益
+            </h3>
+            <p className="text-4xl font-bold text-cyber-blue">10%</p>
+            <p className="mt-2 text-sm text-text-secondary">
+              直接推荐的下级质押金额的 10% 作为推荐奖励
+            </p>
+          </Card>
+
+          {/* 团队极差 */}
+          <Card hover>
+            <h3 className="mb-3 text-lg font-semibold text-text-primary">
+              团队极差收益
+            </h3>
+            <div className="space-y-2">
+              {[
+                { level: "V1", rate: "5%", req: "1万" },
+                { level: "V2", rate: "10%", req: "5万" },
+                { level: "V3", rate: "15%", req: "10万" },
+                { level: "V4", rate: "20%", req: "30万" },
+                { level: "V5", rate: "25%", req: "50万" },
+                { level: "V6", rate: "全网5%加权", req: "100万" },
+              ].map((v) => (
+                <div
+                  key={v.level}
+                  className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-1.5"
+                >
+                  <Badge variant="purple">{v.level}</Badge>
+                  <span className="text-sm text-cyber-blue">{v.rate}</span>
+                  <span className="text-xs text-text-muted">
+                    小区 {v.req}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </section>
     </div>
   );
 }
